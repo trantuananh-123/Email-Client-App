@@ -43,9 +43,5 @@ public class UserController {
     public boolean login(User user) {
         return userDAO.login(user);
     }
-    
-    public List<EmailMessage> getPreviewEmailList(User user) {
-        return userDAO.getPreviewEmailList(user);
-    }
 
 }

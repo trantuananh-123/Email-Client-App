@@ -37,7 +37,7 @@ import org.apache.commons.lang.ArrayUtils;
  */
 public class UserDAO implements IUserDAO {
 
-    private static Session session;
+    public static Session session;
 
     private Statement statement;
     private PreparedStatement preStatement;
@@ -122,47 +122,19 @@ public class UserDAO implements IUserDAO {
                 }
             });
             if (emailSession != null) {
-                session = emailSession;
-                return true;
+                Store store = emailSession.getStore("imaps");
+                store.connect("imap.gmail.com", user.getEmail(), user.getPassword());
+                if (store.isConnected()) {
+                    session = emailSession;
+                    return true;
+                } else {
+                    return false;
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
+            return false;
         }
         return false;
     }
-
-    @Override
-    public List<EmailMessage> getPreviewEmailList(User user) {
-        Store store;
-        List<EmailMessage> result = new ArrayList<>();
-        try {
-            store = session.getStore("imaps");
-            store.connect("imap.gmail.com", user.getEmail(), user.getPassword());
-
-            //create the folder object and open it
-            Folder[] emailFolder = store.getDefaultFolder().list("*");
-            for (Folder folder : emailFolder) {
-                if ((folder.getType() & javax.mail.Folder.HOLDS_MESSAGES) != 0) {
-                    System.out.println(folder.getFullName() + ": " + folder.getMessageCount());
-                }
-            }
-//            emailFolder.open(Folder.READ_ONLY);
-//
-//            // retrieve the messages from the folder in an array and print it
-//            Message[] messages = emailFolder.getMessages();
-//
-//            for (int i = messages.length - 1; i > messages.length - 5; i--) {
-//                Message message = messages[i];
-//                Address adderss = message.getFrom()[0];
-//                EmailMessage emailMessage = new EmailMessage(message.getSubject(), adderss.toString(), message.getContent().toString());
-//                result.add(emailMessage);
-//            }
-        } catch (NoSuchProviderException ex) {
-            Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (MessagingException ex) {
-            Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return result;
-    }
-
 }

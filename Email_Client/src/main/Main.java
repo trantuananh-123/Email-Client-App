@@ -36,7 +36,7 @@ public class Main {
         SocketConnection connection = new SocketConnection();
         Socket socket = connection.getConnection(HOST, PORT);
         
-        LoginView registerView = new LoginView(socket);
-        registerView.setVisible(true);
+        LoginView loginView = new LoginView(socket);
+        loginView.setVisible(true);
     }
 }

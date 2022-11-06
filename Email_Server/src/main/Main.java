@@ -6,6 +6,7 @@
 package main;
 
 import connection.SocketConnection;
+import controller.EmailController;
 import controller.UserController;
 import java.io.DataInputStream;
 import java.io.EOFException;
@@ -14,6 +15,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -38,7 +40,7 @@ public class Main {
         try {
             while (true) {
                 Socket socket = serverSocket.accept();
-                new ClientHandler(socket, new UserController()).start();
+                new ClientHandler(socket, new UserController(), new EmailController()).start();
             }
         } finally {
             if (serverSocket != null) {
@@ -53,10 +55,12 @@ public class Main {
         private ObjectOutputStream oos;
         private ObjectInputStream ois;
         private UserController userController;
+        private EmailController emailController;
 
-        public ClientHandler(Socket socket, UserController userController) {
+        public ClientHandler(Socket socket, UserController userController, EmailController emailController) {
             this.socket = socket;
             this.userController = userController;
+            this.emailController = emailController;
         }
 
         public void run() {
@@ -67,15 +71,26 @@ public class Main {
                     try {
                         DataRequest dataRequest = (DataRequest) ois.readObject();
                         if (dataRequest != null) {
+                            List<EmailMessage> emailList = new ArrayList<>();
                             switch (dataRequest.getMethodName()) {
                                 case "login":
-                                    boolean isLogin = userController.login((User) dataRequest.getData());
+                                    boolean isLogin = userController.login((User) dataRequest.getUser());
                                     oos.writeBoolean(isLogin);
                                     oos.flush();
                                     break;
-                                case "getPreviewEmailList":
-                                    List<EmailMessage> previewEmailList = userController.getPreviewEmailList((User) dataRequest.getData());
-                                    oos.writeObject(previewEmailList);
+                                case "getMessage":
+                                    emailList = emailController.getMessage((User) dataRequest.getUser(), dataRequest.getPage(), dataRequest.getSize(), dataRequest.getType());
+                                    oos.writeObject(emailList);
+                                    oos.flush();
+                                    break;
+                                case "sendEmail":
+                                    boolean isSuccess = emailController.sendEmail((User) dataRequest.getUser(), (EmailMessage) dataRequest.getData());
+                                    oos.writeBoolean(isSuccess);
+                                    oos.flush();
+                                    break;
+                                case "getDetailEmail":
+                                    List<EmailMessage> list = emailController.getDetailEmail((User) dataRequest.getUser(), (EmailMessage) dataRequest.getData());
+                                    oos.writeObject(list);
                                     oos.flush();
                                     break;
                             }

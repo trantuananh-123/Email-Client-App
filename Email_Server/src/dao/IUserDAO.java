@@ -22,6 +22,4 @@ public interface IUserDAO {
     boolean register(User user);
     
     boolean login(User user);
-    
-    List<EmailMessage> getPreviewEmailList(User user);
 }
