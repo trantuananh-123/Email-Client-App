@@ -35,6 +35,7 @@ import javax.activation.DataHandler;
 import javax.activation.FileDataSource;
 import javax.mail.Address;
 import javax.mail.BodyPart;
+import javax.mail.Flags;
 import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -106,6 +107,21 @@ public class EmailDAO implements IEmailDAO {
                         break;
                     case 2:
                         emailType = "[Gmail]/Quan trọng";
+                        break;
+                    case 3:
+                        emailType = "[Gmail]/Thùng rác";
+                        break;
+                    case 4:
+                        emailType = "[Gmail]/Thư nháp";
+                        break;
+                    case 5:
+                        emailType = "[Gmail]/Thư rác";
+                        break;
+                    case 6:
+                        emailType = "[Gmail]/Thư đã gửi";
+                        break;
+                    case 7:
+                        emailType = "[Gmail]/Tất cả thư";
                         break;
                     default:
                         break;
@@ -194,6 +210,7 @@ public class EmailDAO implements IEmailDAO {
             MessageIDTerm messageIDTerm = new MessageIDTerm(messageId);
             Message[] messages = emailFolder.search(messageIDTerm);
             for (int i = 0; i < messages.length; i++) {
+                attachFiles.clear();
                 Message message = messages[i];
                 Address[] from = message.getFrom();
                 String tos = "";
@@ -207,11 +224,13 @@ public class EmailDAO implements IEmailDAO {
                 }
                 InternetAddress iaFrom = (InternetAddress) from[0];
                 String name = MimeUtility.decodeText(iaFrom.toString()).replaceAll("<" + iaFrom.getAddress() + ">", "");
-                String content = getTextFromMessage(message).trim();
+                String content = getTextFromMessage(message, 1).trim();
                 EmailMessage emailMessage = new EmailMessage(messageId, name, message.getSubject(), iaFrom.getAddress(), tos, content);
                 emailMessage.setFile(attachFiles);
                 result.add(emailMessage);
             }
+            emailFolder.close(true);
+            store.close();
             return result;
         } catch (NoSuchProviderException ex) {
             Logger.getLogger(EmailDAO.class.getName()).log(Level.SEVERE, null, ex);
@@ -223,6 +242,82 @@ public class EmailDAO implements IEmailDAO {
             Logger.getLogger(EmailDAO.class.getName()).log(Level.SEVERE, null, ex);
         }
         return new ArrayList<>();
+    }
+
+    @Override
+    public Boolean downloadAttachment(User user, String messageId) {
+        List<EmailMessage> result = new ArrayList<>();
+        try {
+            Session session = UserDAO.session;
+            Store store;
+            store = session.getStore("imaps");
+            store.connect("imap.gmail.com", user.getEmail(), user.getPassword());
+
+            Folder emailFolder = store.getFolder("[Gmail]/Tất cả thư");
+            emailFolder.open(Folder.READ_ONLY);
+            MessageIDTerm messageIDTerm = new MessageIDTerm(messageId);
+            Message[] messages = emailFolder.search(messageIDTerm);
+            for (int i = 0; i < messages.length; i++) {
+                Message message = messages[i];
+                String contentType = message.getContentType();
+                if (contentType.contains("multipart")) {
+                    // content may contain attachments
+                    Multipart multiPart = (Multipart) message.getContent();
+                    int numberOfParts = multiPart.getCount();
+                    for (int partCount = 0; partCount < numberOfParts; partCount++) {
+                        MimeBodyPart part = (MimeBodyPart) multiPart.getBodyPart(partCount);
+                        if (Part.ATTACHMENT.equalsIgnoreCase(part.getDisposition())) {
+                            // this part is attachment
+                            String fileName = MimeUtility.decodeText(part.getFileName());
+                            part.saveFile("D:/Nam-4/Nam-4/Lap-Trinh-Mang/Email_Client" + File.separator + fileName);
+                        }
+                    }
+                }
+            }
+            emailFolder.close(true);
+            store.close();
+            return true;
+        } catch (NoSuchProviderException ex) {
+            Logger.getLogger(EmailDAO.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (MessagingException ex) {
+            Logger.getLogger(EmailDAO.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (UnsupportedEncodingException ex) {
+            Logger.getLogger(EmailDAO.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(EmailDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
+    }
+
+    @Override
+    public Boolean deleteMail(User user, String messageId) {
+        try {
+            Session session = UserDAO.session;
+            Store store;
+            store = session.getStore("imap");
+            store.connect("imap.gmail.com", user.getEmail(), user.getPassword());
+
+            Folder emailFolder = store.getFolder("INBOX");
+            Folder trashFolder = store.getFolder("[Gmail]/Thùng rác");
+            emailFolder.open(Folder.READ_WRITE);
+            trashFolder.open(Folder.READ_WRITE);
+            MessageIDTerm messageIDTerm = new MessageIDTerm(messageId);
+            Message[] messages = emailFolder.search(messageIDTerm);
+            emailFolder.copyMessages(messages, trashFolder);
+//            for (int i = 0; i < messages.length; i++) {
+//                Message message = messages[i];
+//                message.setFlag(Flags.Flag.DELETED, true);
+//            }
+            emailFolder.expunge();
+            emailFolder.close(true);
+            store.close();
+            return true;
+        } catch (NoSuchProviderException ex) {
+            Logger.getLogger(EmailDAO.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (MessagingException ex) {
+            Logger.getLogger(EmailDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
     }
 
     private List<EmailMessage> getMessage(User user, Integer page, Integer size, String type) throws Exception {
@@ -240,40 +335,45 @@ public class EmailDAO implements IEmailDAO {
                 int startIndex = page * size + 1;
                 int endIndex = startIndex + size - 1;
                 int totalMessage = emailFolder.getMessageCount();
-                Message[] messages = emailFolder.getMessages(startIndex, Math.min(endIndex, totalMessage));
+//                Message[] messages = emailFolder.getMessages(startIndex, Math.min(endIndex, totalMessage));
+                Message[] messages = emailFolder.getMessages();
                 ArrayUtils.reverse(messages);
 
                 for (int i = 0; i < messages.length; i++) {
+                    attachFiles.clear();
                     Message message = messages[i];
                     Address[] from = message.getFrom();
                     String tos = "";
                     Address[] to = message.getRecipients(Message.RecipientType.TO);
-                    for (Address t : to) {
-                        InternetAddress iaTo = (InternetAddress) t;
-                        tos += ("<" + iaTo.getAddress() + ">") + ";";
-                    }
-                    if (tos.trim().endsWith(";")) {
-                        tos = tos.trim().substring(0, tos.length() - 1);
+                    if (to != null && to.length > 0) {
+                        for (Address t : to) {
+                            InternetAddress iaTo = (InternetAddress) t;
+                            tos += ("<" + iaTo.getAddress() + ">") + ";";
+                        }
+                        if (tos.trim().endsWith(";")) {
+                            tos = tos.trim().substring(0, tos.length() - 1);
+                        }
                     }
                     InternetAddress iaFrom = (InternetAddress) from[0];
                     String name = MimeUtility.decodeText(iaFrom.toString()).replaceAll("<" + iaFrom.getAddress() + ">", "");
-                    String content = getTextFromMessage(message).trim();
+                    String content = getTextFromMessage(message, 0).trim();
                     String messageId = ((MimeMessage) message).getMessageID();
                     EmailMessage emailMessage = new EmailMessage(messageId, name, message.getSubject(), iaFrom.getAddress(), tos, content);
-                    emailMessage.setFile(attachFiles);
                     result.add(emailMessage);
                 }
-
+                emailFolder.close(true);
+                store.close();
             } catch (NoSuchProviderException ex) {
                 Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, ex);
             } catch (MessagingException | IOException ex) {
                 Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
+
         return result;
     }
 
-    private String getTextFromMessage(Message message) throws IOException, MessagingException {
+    private String getTextFromMessage(Message message, Integer type) throws IOException, MessagingException {
         String result = "";
         if (message.isMimeType("text/plain")) {
             result = message.getContent().toString();
@@ -285,7 +385,9 @@ public class EmailDAO implements IEmailDAO {
                 if (Part.ATTACHMENT.equalsIgnoreCase(part.getDisposition())) {
                     // this part is attachment
                     String fileName = MimeUtility.decodeText(part.getFileName());
-                    attachFiles.add(fileName);
+                    if (type == 1) {
+                        attachFiles.add(fileName);
+                    }
 //                    part.saveFile("D:/Nam-4/Nam-4/Lap-Trinh-Mang/Email_Client" + File.separator + fileName);
                 } else {
                     result = getTextFromMimeMultipart(multiPart);

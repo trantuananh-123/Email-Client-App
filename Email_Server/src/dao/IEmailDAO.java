@@ -20,4 +20,8 @@ public interface IEmailDAO {
     Boolean sendEmail(User user, EmailMessage emailMessage);
     
     List<EmailMessage> getDetailEmail(User user, String messageId);
+    
+    Boolean downloadAttachment(User user, String messageId);
+    
+    Boolean deleteMail(User user, String messageId);
 }

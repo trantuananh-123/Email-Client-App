@@ -46,6 +46,13 @@ public class HomeView extends javax.swing.JFrame {
     private DefaultTableModel tableModel1 = null;
     private DefaultTableModel tableModel2 = null;
     private DefaultTableModel tableModel3 = null;
+    private DefaultTableModel tableModel4 = null;
+    private DefaultTableModel tableModel5 = null;
+    private DefaultTableModel tableModel6 = null;
+    private DefaultTableModel tableModel7 = null;
+    private DefaultTableModel tableModel8 = null;
+
+    private List<EmailMessage> result = new ArrayList<>();
 
     /**
      * Creates new form HomeView
@@ -61,43 +68,98 @@ public class HomeView extends javax.swing.JFrame {
         this.oos = oos;
         this.ois = ois;
 
+        setTableSize(jTable1);
         setTableSize(jTable2);
         setTableSize(jTable3);
+        setTableSize(jTable4);
+        setTableSize(jTable5);
+        setTableSize(jTable6);
+        setTableSize(jTable7);
+        setTableSize(jTable8);
         tableModel1 = (DefaultTableModel) jTable2.getModel();
         tableModel2 = (DefaultTableModel) jTable3.getModel();
         tableModel3 = (DefaultTableModel) jTable1.getModel();
+        tableModel4 = (DefaultTableModel) jTable4.getModel();
+        tableModel5 = (DefaultTableModel) jTable5.getModel();
+        tableModel6 = (DefaultTableModel) jTable6.getModel();
+        tableModel7 = (DefaultTableModel) jTable7.getModel();
+        tableModel8 = (DefaultTableModel) jTable8.getModel();
 
         List<EmailMessage> messageList = new ArrayList<>();
         messageList = this.getMailList(user, "getMessage", 0);
         addData(messageList, tableModel1);
-
         ChangeListener changeListener;
         changeListener = new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent changeEvent) {
                 DataRequest dataRequest = new DataRequest();
-                dataRequest.setData(user);
+
+                dataRequest.setUser(user);
                 List<EmailMessage> newEmailMessage = new ArrayList<>();
-                if (jTabbedPane1.getSelectedIndex() == 0) {
+
+                if (jTabbedPane1.getSelectedIndex()
+                        == 0) {
                     tableModel1.setRowCount(0);
                     dataRequest.setMethodName("getMessage");
                     dataRequest.setType(0);
                     newEmailMessage = getData(dataRequest);
                     addData(newEmailMessage, tableModel1);
-                } else if (jTabbedPane1.getSelectedIndex() == 1) {
+                } else if (jTabbedPane1.getSelectedIndex()
+                        == 1) {
                     tableModel2.setRowCount(0);
                     dataRequest.setMethodName("getMessage");
                     dataRequest.setType(1);
                     newEmailMessage = getData(dataRequest);
                     addData(newEmailMessage, tableModel2);
                     detectTableRowClick(jTable3, newEmailMessage);
-                } else if (jTabbedPane1.getSelectedIndex() == 2) {
+                } else if (jTabbedPane1.getSelectedIndex()
+                        == 2) {
                     tableModel3.setRowCount(0);
                     dataRequest.setMethodName("getMessage");
                     dataRequest.setType(2);
                     newEmailMessage = getData(dataRequest);
                     addData(newEmailMessage, tableModel3);
                     detectTableRowClick(jTable1, newEmailMessage);
+                } else if (jTabbedPane1.getSelectedIndex()
+                        == 3) {
+                    tableModel4.setRowCount(0);
+                    dataRequest.setMethodName("getMessage");
+                    dataRequest.setType(3);
+                    newEmailMessage = getData(dataRequest);
+                    addData(newEmailMessage, tableModel4);
+                    detectTableRowClick(jTable4, newEmailMessage);
+                } else if (jTabbedPane1.getSelectedIndex()
+                        == 4) {
+                    tableModel5.setRowCount(0);
+                    dataRequest.setMethodName("getMessage");
+                    dataRequest.setType(5);
+                    newEmailMessage = getData(dataRequest);
+                    addData(newEmailMessage, tableModel5);
+                    detectTableRowClick(jTable5, newEmailMessage);
+                } else if (jTabbedPane1.getSelectedIndex()
+                        == 5) {
+                    tableModel6.setRowCount(0);
+                    dataRequest.setMethodName("getMessage");
+                    dataRequest.setType(5);
+                    newEmailMessage = getData(dataRequest);
+                    addData(newEmailMessage, tableModel6);
+                    detectTableRowClick(jTable6, newEmailMessage);
+                } else if (jTabbedPane1.getSelectedIndex()
+                        == 6) {
+                    tableModel7.setRowCount(0);
+                    dataRequest.setMethodName("getMessage");
+                    dataRequest.setType(6);
+                    newEmailMessage = getData(dataRequest);
+                    addData(newEmailMessage, tableModel7);
+                    detectTableRowClick(jTable7, newEmailMessage);
+                } else if (jTabbedPane1.getSelectedIndex()
+                        == 7) {
+                    tableModel8.setRowCount(0);
+                    dataRequest.setMethodName("getMessage");
+                    dataRequest.setType(7);
+                    newEmailMessage = getData(dataRequest);
+                    addData(newEmailMessage, tableModel8);
+                    detectTableRowClick(jTable8, newEmailMessage);
                 }
             }
 
@@ -143,6 +205,7 @@ public class HomeView extends javax.swing.JFrame {
         oos.flush();
 
         List<EmailMessage> messageList = (List<EmailMessage>) ois.readObject();
+        result.addAll(messageList);
         return messageList;
     }
 
@@ -161,18 +224,19 @@ public class HomeView extends javax.swing.JFrame {
 
                         oos.writeObject(dataRequest);
                         oos.flush();
-                        List<EmailMessage> messageList = (List<EmailMessage>) ois.readObject();
-                        for (EmailMessage message : messageList) {
-                            System.out.println(message);
-                        }
+                        List<EmailMessage> result = (List<EmailMessage>) ois.readObject();
 
-//                        DetailView detailView = new DetailView(user, socket, messageList.get(row), oos, ois);
-//                        detailView.setVisible(true);
-//                        setVisible(false);
+                        DetailView detailView = new DetailView(user, socket, result.get(0), oos, ois);
+                        detailView.setVisible(true);
+                        setVisible(false);
+
                     } catch (IOException ex) {
-                        Logger.getLogger(HomeView.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(HomeView.class
+                                .getName()).log(Level.SEVERE, null, ex);
+
                     } catch (ClassNotFoundException ex) {
-                        Logger.getLogger(HomeView.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(HomeView.class
+                                .getName()).log(Level.SEVERE, null, ex);
                     }
                 }
             }
@@ -193,9 +257,11 @@ public class HomeView extends javax.swing.JFrame {
                     }
                     if (socket != null) {
                         socket.close();
+
                     }
                 } catch (IOException ex) {
-                    Logger.getLogger(LoginView.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(LoginView.class
+                            .getName()).log(Level.SEVERE, null, ex);
                 }
             }
         });
@@ -229,6 +295,7 @@ public class HomeView extends javax.swing.JFrame {
         jScrollPane9 = new javax.swing.JScrollPane();
         jTable8 = new javax.swing.JTable();
         jButton1 = new javax.swing.JButton();
+        jButton2 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -391,6 +458,13 @@ public class HomeView extends javax.swing.JFrame {
             }
         });
 
+        jButton2.setText("Làm mới");
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -401,6 +475,8 @@ public class HomeView extends javax.swing.JFrame {
                     .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 597, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jButton1)
+                        .addGap(18, 18, 18)
+                        .addComponent(jButton2)
                         .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
@@ -408,9 +484,11 @@ public class HomeView extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGap(20, 20, 20)
-                .addComponent(jButton1)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jButton1)
+                    .addComponent(jButton2))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 451, Short.MAX_VALUE)
+                .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 306, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -423,6 +501,100 @@ public class HomeView extends javax.swing.JFrame {
         sendEmailView.setVisible(true);
         setVisible(false);
     }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        // TODO add your handling code here:
+        List<EmailMessage> messageList = new ArrayList<>();
+        if (jTabbedPane1.getSelectedIndex() == 0) {
+            try {
+                tableModel1.setRowCount(0);
+                messageList = this.getMailList(user, "getMessage", 0);
+                addData(messageList, tableModel1);
+                detectTableRowClick(jTable2, messageList);
+            } catch (IOException ex) {
+                Logger.getLogger(HomeView.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (ClassNotFoundException ex) {
+                Logger.getLogger(HomeView.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } else if (jTabbedPane1.getSelectedIndex() == 1) {
+            try {
+                tableModel2.setRowCount(0);
+                messageList = this.getMailList(user, "getMessage", 1);
+                addData(messageList, tableModel2);
+                detectTableRowClick(jTable3, messageList);
+            } catch (IOException ex) {
+                Logger.getLogger(HomeView.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (ClassNotFoundException ex) {
+                Logger.getLogger(HomeView.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } else if (jTabbedPane1.getSelectedIndex() == 2) {
+            try {
+                tableModel3.setRowCount(0);
+                messageList = this.getMailList(user, "getMessage", 2);
+                addData(messageList, tableModel3);
+                detectTableRowClick(jTable1, messageList);
+            } catch (IOException ex) {
+                Logger.getLogger(HomeView.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (ClassNotFoundException ex) {
+                Logger.getLogger(HomeView.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } else if (jTabbedPane1.getSelectedIndex() == 3) {
+            try {
+                tableModel4.setRowCount(0);
+                messageList = this.getMailList(user, "getMessage", 3);
+                addData(messageList, tableModel4);
+                detectTableRowClick(jTable4, messageList);
+            } catch (IOException ex) {
+                Logger.getLogger(HomeView.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (ClassNotFoundException ex) {
+                Logger.getLogger(HomeView.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } else if (jTabbedPane1.getSelectedIndex() == 4) {
+            try {
+                tableModel5.setRowCount(0);
+                messageList = this.getMailList(user, "getMessage", 4);
+                addData(messageList, tableModel5);
+                detectTableRowClick(jTable5, messageList);
+            } catch (IOException ex) {
+                Logger.getLogger(HomeView.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (ClassNotFoundException ex) {
+                Logger.getLogger(HomeView.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } else if (jTabbedPane1.getSelectedIndex() == 5) {
+            try {
+                tableModel6.setRowCount(0);
+                messageList = this.getMailList(user, "getMessage", 5);
+                addData(messageList, tableModel6);
+                detectTableRowClick(jTable6, messageList);
+            } catch (IOException ex) {
+                Logger.getLogger(HomeView.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (ClassNotFoundException ex) {
+                Logger.getLogger(HomeView.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } else if (jTabbedPane1.getSelectedIndex() == 6) {
+            try {
+                tableModel7.setRowCount(0);
+                messageList = this.getMailList(user, "getMessage", 6);
+                addData(messageList, tableModel7);
+                detectTableRowClick(jTable7, messageList);
+            } catch (IOException ex) {
+                Logger.getLogger(HomeView.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (ClassNotFoundException ex) {
+                Logger.getLogger(HomeView.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } else if (jTabbedPane1.getSelectedIndex() == 7) {
+            try {
+                tableModel8.setRowCount(0);
+                messageList = this.getMailList(user, "getMessage", 7);
+                addData(messageList, tableModel8);
+                detectTableRowClick(jTable8, messageList);
+            } catch (IOException ex) {
+                Logger.getLogger(HomeView.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (ClassNotFoundException ex) {
+                Logger.getLogger(HomeView.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }//GEN-LAST:event_jButton2ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -438,16 +610,24 @@ public class HomeView extends javax.swing.JFrame {
                 if ("Nimbus".equals(info.getName())) {
                     javax.swing.UIManager.setLookAndFeel(info.getClassName());
                     break;
+
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(HomeView.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(HomeView.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
+
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(HomeView.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(HomeView.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
+
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(HomeView.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(HomeView.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
+
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(HomeView.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(HomeView.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
 
@@ -456,10 +636,14 @@ public class HomeView extends javax.swing.JFrame {
             public void run() {
                 try {
                     new HomeView(user, socket, oos, ois).setVisible(true);
+
                 } catch (IOException ex) {
-                    Logger.getLogger(HomeView.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(HomeView.class
+                            .getName()).log(Level.SEVERE, null, ex);
+
                 } catch (ClassNotFoundException ex) {
-                    Logger.getLogger(HomeView.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(HomeView.class
+                            .getName()).log(Level.SEVERE, null, ex);
                 }
             }
         });
@@ -467,6 +651,7 @@ public class HomeView extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
+    private javax.swing.JButton jButton2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;

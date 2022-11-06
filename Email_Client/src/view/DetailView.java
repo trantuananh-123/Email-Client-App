@@ -10,7 +10,9 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JOptionPane;
 import javax.swing.JTextField;
+import model.DataRequest;
 import model.EmailMessage;
 import model.User;
 
@@ -51,7 +53,6 @@ public class DetailView extends javax.swing.JFrame {
         jLabel4.setText("đến " + message.getTo());
         jLabel4.setForeground(Color.gray);
         jTextArea1.setText(message.getContent());
-
         jButton5.setVisible(false);
         jButton6.setVisible(message.getFile().size() > 0);
         if (message.getFile().size() > 0) {
@@ -72,6 +73,7 @@ public class DetailView extends javax.swing.JFrame {
 
         jTextField1.setVisible(jRadioButton1.isSelected());
         jTextArea2.setVisible(jRadioButton1.isSelected() || jRadioButton2.isSelected());
+        jScrollPane2.setVisible(jRadioButton1.isSelected() || jRadioButton2.isSelected());
         jButton7.setVisible(jRadioButton1.isSelected() || jRadioButton2.isSelected());
 
         setPlaceholder("Đến(xxx@gmail.com,xxx@gmail.com)", jTextField1);
@@ -169,8 +171,18 @@ public class DetailView extends javax.swing.JFrame {
         });
 
         jButton5.setText("Gửi");
+        jButton5.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton5ActionPerformed(evt);
+            }
+        });
 
         jButton4.setText("Xóa");
+        jButton4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton4ActionPerformed(evt);
+            }
+        });
 
         jLabel5.setText("Tệp đính kèm");
 
@@ -195,6 +207,11 @@ public class DetailView extends javax.swing.JFrame {
         );
 
         jButton6.setText("Tải xuống tệp đính kèm");
+        jButton6.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton6ActionPerformed(evt);
+            }
+        });
 
         buttonGroup1.add(jRadioButton1);
         jRadioButton1.setText("Chuyển tiếp");
@@ -205,6 +222,11 @@ public class DetailView extends javax.swing.JFrame {
         });
 
         jButton7.setText("Xóa");
+        jButton7.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton7ActionPerformed(evt);
+            }
+        });
 
         buttonGroup1.add(jRadioButton2);
         jRadioButton2.setText("Trả lời");
@@ -234,8 +256,8 @@ public class DetailView extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(jButton4))
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 604, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jTextField1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jButton7))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -307,15 +329,87 @@ public class DetailView extends javax.swing.JFrame {
         // TODO add your handling code here:
         jTextField1.setVisible(jRadioButton1.isSelected());
         jTextArea2.setVisible(jRadioButton1.isSelected() || jRadioButton2.isSelected());
+        jScrollPane2.setVisible(jRadioButton1.isSelected() || jRadioButton2.isSelected());
         jButton7.setVisible(jRadioButton1.isSelected() || jRadioButton2.isSelected());
+        jButton5.setVisible(jRadioButton1.isSelected() || jRadioButton2.isSelected());
     }//GEN-LAST:event_jRadioButton1ActionPerformed
 
     private void jRadioButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButton2ActionPerformed
         // TODO add your handling code here:
         jTextField1.setVisible(jRadioButton1.isSelected());
         jTextArea2.setVisible(jRadioButton1.isSelected() || jRadioButton2.isSelected());
+        jScrollPane2.setVisible(jRadioButton1.isSelected() || jRadioButton2.isSelected());
         jButton7.setVisible(jRadioButton1.isSelected() || jRadioButton2.isSelected());
+        jButton5.setVisible(jRadioButton1.isSelected() || jRadioButton2.isSelected());
     }//GEN-LAST:event_jRadioButton2ActionPerformed
+
+    private void jButton6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton6ActionPerformed
+        try {
+            // TODO add your handling code here:
+            DataRequest dataRequest = new DataRequest();
+            dataRequest.setMethodName("downloadAttachment");
+            dataRequest.setUser(user);
+            dataRequest.setData(message);
+
+            oos.writeObject(dataRequest);
+            oos.flush();
+
+            boolean isSuccess = ois.readBoolean();
+            if (isSuccess) {
+                JOptionPane.showMessageDialog(null, "Tải tệp đính kèm thành công", "Tải tệp", JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(null, "Tải tệp đính kèm không thành công", "Tải tệp", JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(DetailView.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_jButton6ActionPerformed
+
+    private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jButton5ActionPerformed
+
+    private void jButton7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton7ActionPerformed
+        // TODO add your handling code here:
+        jTextArea2.setVisible(false);
+        jTextArea2.setText(null);
+        jButton5.setVisible(false);
+        jRadioButton1.setSelected(false);
+        jRadioButton2.setSelected(false);
+        buttonGroup1.clearSelection();
+        jTextField1.setVisible(false);
+        jTextField1.setText(null);
+        jScrollPane2.setVisible(false);
+        jButton7.setVisible(false);
+    }//GEN-LAST:event_jButton7ActionPerformed
+
+    private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
+        // TODO add your handling code here:
+
+        int input = JOptionPane.showConfirmDialog(null, "Bạn có chắc chắn xóa thư này không?", "Xóa thư", JOptionPane.YES_NO_OPTION);
+        if (input == 0) {
+            try {
+                DataRequest dataRequest = new DataRequest();
+                dataRequest.setMethodName("deleteMail");
+                dataRequest.setUser(user);
+                dataRequest.setData(message);
+
+                oos.writeObject(dataRequest);
+                oos.flush();
+
+                boolean isSuccess = ois.readBoolean();
+                if (isSuccess) {
+                    HomeView homeView = new HomeView(user, socket, oos, ois);
+                    homeView.setVisible(true);
+                    setVisible(false);
+                } else {
+                    JOptionPane.showMessageDialog(null, "Xóa thư thất bại", "Xóa thư", JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (IOException | ClassNotFoundException ex) {
+                Logger.getLogger(DetailView.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }//GEN-LAST:event_jButton4ActionPerformed
 
     /**
      * @param args the command line arguments

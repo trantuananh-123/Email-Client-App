@@ -44,4 +44,12 @@ public class EmailController {
         return emailDAO.getDetailEmail(user, emailMessage.getId());
     }
 
+    public Boolean downloadAttachment(User user, EmailMessage emailMessage) {
+        return emailDAO.downloadAttachment(user, emailMessage.getId());
+    }
+
+    public Boolean deleteMail(User user, EmailMessage emailMessage) {
+        return emailDAO.deleteMail(user, emailMessage.getId());
+    }
+
 }

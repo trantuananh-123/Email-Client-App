@@ -186,7 +186,7 @@ public class LoginView extends javax.swing.JFrame {
                 homeView.setVisible(true);
                 this.setVisible(false);
             } else {
-                JOptionPane.showMessageDialog(null, "Sai email/passowrd", "Đăng nhập không thành công", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(null, "Sai email/passowrd", "Đăng nhập", JOptionPane.ERROR_MESSAGE);
             }
         } catch (IOException ex) {
             Logger.getLogger(LoginView.class.getName()).log(Level.SEVERE, null, ex);

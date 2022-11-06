@@ -91,6 +91,17 @@ public class Main {
                                 case "getDetailEmail":
                                     List<EmailMessage> list = emailController.getDetailEmail((User) dataRequest.getUser(), (EmailMessage) dataRequest.getData());
                                     oos.writeObject(list);
+                                    oos.reset();
+                                    oos.flush();
+                                    break;
+                                case "downloadAttachment":
+                                    Boolean isDownloadSuccess = emailController.downloadAttachment((User) dataRequest.getUser(), (EmailMessage) dataRequest.getData());
+                                    oos.writeBoolean(isDownloadSuccess);
+                                    oos.flush();
+                                    break;
+                                case "deleteMail":
+                                    Boolean isDelete = emailController.deleteMail((User) dataRequest.getUser(), (EmailMessage) dataRequest.getData());
+                                    oos.writeBoolean(isDelete);
                                     oos.flush();
                                     break;
                             }
