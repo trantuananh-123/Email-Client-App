@@ -25,11 +25,7 @@ public class UserController {
     private UserDAO userDAO;
 
     public UserController() {
-        try {
-            userDAO = new UserDAO(DBConnection.getMySQLConnection());
-        } catch (SQLException | ClassNotFoundException ex) {
-            Logger.getLogger(UserController.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        userDAO = new UserDAO();
     }
 
     public List<User> getAll() {

@@ -45,7 +45,7 @@ public class UserDAO implements IUserDAO {
     private ResultSet rs;
     private Properties properties = new Properties();
 
-    public UserDAO(Connection connection) {
+    public UserDAO() {
 //        properties.put("mail.smtp.auth", "true");
 //        properties.put("mail.smtp.starttls.enable", "true");
 //        properties.put("mail.smtp.host", "smtp.gmail.com");
@@ -56,12 +56,7 @@ public class UserDAO implements IUserDAO {
         properties.put("mail.imaps.starttls.enable", "true");
         properties.put("mail.imap.ssl.enable", "true");
         properties.put("mail.imaps.sasl.enable", "true");
-        this.connection = connection;
-        try {
-            this.statement = this.connection.createStatement();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+
     }
 
     @Override

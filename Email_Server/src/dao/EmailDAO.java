@@ -82,19 +82,13 @@ public class EmailDAO implements IEmailDAO {
 
     private List<String> attachFiles = new ArrayList<>();
 
-    public EmailDAO(Connection connection) {
+    public EmailDAO() {
         properties.put("mail.store.protocol", "imaps");
         properties.put("mail.imaps.port", "993");
         properties.put("mail.imaps.starttls.enable", "true");
         properties.put("mail.imap.ssl.enable", "true");
         properties.put("mail.imaps.sasl.enable", "true");
 
-        this.connection = connection;
-        try {
-            this.statement = this.connection.createStatement();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
     }
 
     @Override

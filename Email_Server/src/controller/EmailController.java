@@ -24,11 +24,7 @@ public class EmailController {
     private EmailDAO emailDAO;
 
     public EmailController() {
-        try {
-            emailDAO = new EmailDAO(DBConnection.getMySQLConnection());
-        } catch (SQLException | ClassNotFoundException ex) {
-            Logger.getLogger(UserController.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        emailDAO = new EmailDAO();
     }
 
     public List<EmailMessage> getMessage(User user, Integer page, Integer size, Integer type) {
