@@ -5,6 +5,7 @@
  */
 package dao;
 
+import com.sun.mail.imap.IMAPFolder;
 import com.sun.mail.util.BASE64DecoderStream;
 import com.sun.mail.util.QPDecoderStream;
 import java.io.BufferedInputStream;
@@ -37,6 +38,7 @@ import javax.mail.Address;
 import javax.mail.BodyPart;
 import javax.mail.Flags;
 import javax.mail.Folder;
+import javax.mail.FolderClosedException;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
@@ -46,6 +48,8 @@ import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Store;
 import javax.mail.Transport;
+import javax.mail.event.MessageCountAdapter;
+import javax.mail.event.MessageCountEvent;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.ContentType;
 import javax.mail.internet.InternetAddress;
@@ -320,6 +324,132 @@ public class EmailDAO implements IEmailDAO {
         return false;
     }
 
+    @Override
+    public Boolean forwardEmail(User user, EmailMessage emailMessage) {
+        try {
+            Properties props = new Properties();
+            props.put("mail.smtp.auth", "true");
+            props.put("mail.smtp.starttls.enable", "true");
+            props.put("mail.smtp.host", "smtp.gmail.com");
+            props.put("mail.smtp.port", "587");
+
+            Session session = Session.getInstance(props,
+                    new javax.mail.Authenticator() {
+                protected PasswordAuthentication getPasswordAuthentication() {
+                    return new PasswordAuthentication(user.getEmail(), user.getPassword());
+                }
+            });
+            MimeMessage message = new MimeMessage(session);
+
+            message.setFrom(new InternetAddress(user.getEmail()));
+            if (emailMessage.getTo() != null) {
+                message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(emailMessage.getTo()));
+            }
+            if (emailMessage.getCc() != null) {
+                message.setRecipients(Message.RecipientType.CC, InternetAddress.parse(emailMessage.getCc()));
+            }
+            if (emailMessage.getBcc() != null) {
+                message.setRecipients(Message.RecipientType.BCC, InternetAddress.parse(emailMessage.getBcc()));
+            }
+            message.setSubject(emailMessage.getSubject());
+
+            BodyPart messageBodyPart = new MimeBodyPart();
+            messageBodyPart.setText(emailMessage.getContent());
+
+            Multipart multipart = new MimeMultipart();
+            multipart.addBodyPart(messageBodyPart);
+
+//            if (emailMessage.getFile() != null && emailMessage.getFile().size() > 0) {
+//                for (String filePath : emailMessage.getFile()) {
+//                    BodyPart messageFilePart = new MimeBodyPart();
+//                    FileDataSource source = new FileDataSource(filePath);
+//                    messageFilePart.setDataHandler(new DataHandler(source));
+//                    messageFilePart.setFileName(MimeUtility.encodeText(source.getName()));
+//                    multipart.addBodyPart(messageFilePart);
+//                }
+//            }
+            message.setContent(multipart);
+            Transport.send(message);
+
+            return true;
+
+        } catch (AddressException ex) {
+            Logger.getLogger(EmailDAO.class.getName()).log(Level.SEVERE, null, ex);
+            return false;
+        } catch (MessagingException ex) {
+            Logger.getLogger(EmailDAO.class.getName()).log(Level.SEVERE, null, ex);
+            return false;
+        }
+    }
+
+    @Override
+    public Boolean replyEmail(User user, EmailMessage emailMessage) {
+        try {
+            Properties props = new Properties();
+            props.put("mail.smtp.auth", "true");
+            props.put("mail.smtp.starttls.enable", "true");
+            props.put("mail.smtp.host", "smtp.gmail.com");
+            props.put("mail.smtp.port", "587");
+
+            Session session = Session.getInstance(props,
+                    new javax.mail.Authenticator() {
+                protected PasswordAuthentication getPasswordAuthentication() {
+                    return new PasswordAuthentication(user.getEmail(), user.getPassword());
+                }
+            });
+
+            Store store;
+            store = session.getStore("imaps");
+            store.connect("imap.gmail.com", user.getEmail(), user.getPassword());
+
+            Folder emailFolder = store.getFolder("INBOX");
+            emailFolder.open(Folder.READ_ONLY);
+
+            MessageIDTerm messageIDTerm = new MessageIDTerm(emailMessage.getId());
+            Message[] messages = emailFolder.search(messageIDTerm);
+            for (int i = 0; i < messages.length; i++) {
+                Message message = messages[i];
+                String from = InternetAddress.toString(message.getFrom());
+                String replyTo = InternetAddress.toString(message
+                        .getReplyTo());
+                String to = InternetAddress.toString(message
+                        .getRecipients(Message.RecipientType.TO));
+
+                Message replyMessage = new MimeMessage(session);
+                replyMessage = (MimeMessage) message.reply(false);
+                replyMessage.setFrom(new InternetAddress(to));
+                replyMessage.setText("Thanks");
+                replyMessage.setReplyTo(message.getReplyTo());
+
+                // Send the message by authenticating the SMTP server
+                // Create a Transport instance and call the sendMessage
+                Transport t = session.getTransport("smtp");
+                try {
+                    //connect to the smpt server using transport instance
+                    //change the user and password accordingly	
+                    t.connect(user.getEmail(), user.getPassword());
+                    t.sendMessage(replyMessage,
+                            replyMessage.getAllRecipients());
+                } finally {
+                    t.close();
+                }
+                System.out.println("message replied successfully ....");
+
+                // close the store and folder objects
+                emailFolder.close(false);
+                store.close();
+
+            }
+            return true;
+        } catch (AddressException ex) {
+            Logger.getLogger(EmailDAO.class.getName()).log(Level.SEVERE, null, ex);
+            return false;
+        } catch (MessagingException ex) {
+            Logger.getLogger(EmailDAO.class.getName()).log(Level.SEVERE, null, ex);
+            return false;
+        }
+    }
+
     private List<EmailMessage> getMessage(User user, Integer page, Integer size, String type) throws Exception {
         Session session = UserDAO.session;
         Store store;
@@ -335,8 +465,8 @@ public class EmailDAO implements IEmailDAO {
                 int startIndex = page * size + 1;
                 int endIndex = startIndex + size - 1;
                 int totalMessage = emailFolder.getMessageCount();
-//                Message[] messages = emailFolder.getMessages(startIndex, Math.min(endIndex, totalMessage));
-                Message[] messages = emailFolder.getMessages();
+                Message[] messages = emailFolder.getMessages(startIndex, Math.min(endIndex, totalMessage));
+//                Message[] messages = emailFolder.getMessages();
                 ArrayUtils.reverse(messages);
 
                 for (int i = 0; i < messages.length; i++) {

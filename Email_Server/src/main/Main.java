@@ -104,6 +104,16 @@ public class Main {
                                     oos.writeBoolean(isDelete);
                                     oos.flush();
                                     break;
+                                case "forwardMail":
+                                    Boolean isForward = emailController.forwardEmail((User) dataRequest.getUser(), (EmailMessage) dataRequest.getData());
+                                    oos.writeBoolean(isForward);
+                                    oos.flush();
+                                    break;
+                                case "replyMail":
+                                    Boolean isReply = emailController.replyMail((User) dataRequest.getUser(), (EmailMessage) dataRequest.getData());
+                                    oos.writeBoolean(isReply);
+                                    oos.flush();
+                                    break;
                             }
                         }
                     } catch (EOFException e) {

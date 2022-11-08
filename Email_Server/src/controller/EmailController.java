@@ -52,4 +52,12 @@ public class EmailController {
         return emailDAO.deleteMail(user, emailMessage.getId());
     }
 
+    public Boolean forwardEmail(User user, EmailMessage emailMessage) {
+        return emailDAO.forwardEmail(user, emailMessage);
+    }
+
+    public Boolean replyMail(User user, EmailMessage emailMessage) {
+        return emailDAO.replyEmail(user, emailMessage);
+    }
+
 }

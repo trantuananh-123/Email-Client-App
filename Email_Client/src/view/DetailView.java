@@ -367,6 +367,48 @@ public class DetailView extends javax.swing.JFrame {
 
     private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
         // TODO add your handling code here:
+        if (jRadioButton1.isSelected()) {
+            try {
+                // TODO add your handling code here:
+                DataRequest dataRequest = new DataRequest();
+                dataRequest.setMethodName("forwardMail");
+                dataRequest.setUser(user);
+                dataRequest.setData(message);
+
+                oos.writeObject(dataRequest);
+                oos.flush();
+
+                boolean isSuccess = ois.readBoolean();
+                if (isSuccess) {
+                    JOptionPane.showMessageDialog(null, "Chuyển tiếp thành công", "Chuyển tiếp", JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(null, "Chuyển tiếp không thành công", "Chuyển tiếp", JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (IOException ex) {
+                Logger.getLogger(DetailView.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } else {
+            try {
+                // TODO add your handling code here:
+                DataRequest dataRequest = new DataRequest();
+                dataRequest.setMethodName("replyMail");
+                dataRequest.setUser(user);
+                message.setContent(jTextArea2.getText());
+                dataRequest.setData(message);
+
+                oos.writeObject(dataRequest);
+                oos.flush();
+
+                boolean isSuccess = ois.readBoolean();
+                if (isSuccess) {
+                    JOptionPane.showMessageDialog(null, "Trả lời thành công", "Trả lời", JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(null, "Trả lời không thành công", "Trả lời", JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (IOException ex) {
+                Logger.getLogger(DetailView.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
     }//GEN-LAST:event_jButton5ActionPerformed
 
     private void jButton7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton7ActionPerformed
